@@ -1,0 +1,39 @@
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: #ccC4f9;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+
+  background: #ccc4f9;
+
+  color: #111111;
+
+  font-family: "Inter", sans-serif;
+
+  color-scheme: light;
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input {
+  font: inherit;
+}
