@@ -1,0 +1,984 @@
+.vacation-page {
+  min-height: 100vh;
+  padding: 48px 24px;
+  background: #faf9ff;
+  color: #17142a;
+}
+
+.vacation-container {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
+
+/* =========================================================
+   CABEÇALHO
+========================================================= */
+
+.vacation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.vacation-eyebrow {
+  margin: 0 0 7px;
+  color: #6b4be6;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.vacation-header h1 {
+  margin: 0;
+  font-size: clamp(28px, 4vw, 38px);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+}
+
+.vacation-header > div:first-child > p:last-child {
+  max-width: 650px;
+  margin: 10px 0 0;
+  color: #716b7d;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+/* =========================================================
+   CARD DE PENDÊNCIAS
+========================================================= */
+
+.vacation-pending-card {
+  width: 155px;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 17px;
+  border: 1px solid #e3ddf3;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.vacation-pending-icon {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 11px;
+  background: rgba(165, 146, 239, 0.2);
+  color: #6345d3;
+}
+
+.vacation-pending-icon svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  width: 21px;
+  height: 21px;
+  margin: 0;
+  transform: translate(-50%, -50%);
+}
+
+.vacation-pending-card strong,
+.vacation-pending-card span {
+  display: block;
+}
+
+.vacation-pending-card strong {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.vacation-pending-card div > span {
+  margin-top: 4px;
+  color: #756e83;
+  font-size: 12px;
+}
+
+/* =========================================================
+   MENSAGENS
+========================================================= */
+
+.vacation-message {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 18px;
+  padding: 12px 15px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.vacation-message button {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.vacation-message-error {
+  border: 1px solid #f0cccc;
+  background: #fff4f4;
+  color: #a52f2f;
+}
+
+.vacation-message-error button {
+  color: #a52f2f;
+}
+
+.vacation-message-success {
+  border: 1px solid #cce8d7;
+  background: #f1fbf5;
+  color: #167243;
+}
+
+.vacation-message-success button {
+  color: #167243;
+}
+
+/* =========================================================
+   ÁREA ADM / RH
+========================================================= */
+
+.vacation-card {
+  overflow: hidden;
+  border: 1px solid #e7e3f1;
+  border-radius: 19px;
+  background: #fff;
+}
+
+.vacation-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 22px 25px;
+  border-bottom: 1px solid #eeeaf5;
+}
+
+.vacation-search {
+  width: min(340px, 100%);
+  height: 43px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 13px;
+  border: 1px solid #d9d3e7;
+  border-radius: 10px;
+  color: #736b85;
+  transition: 0.18s ease;
+}
+
+.vacation-search:focus-within {
+  border-color: #6b4be6;
+  box-shadow: 0 0 0 4px rgba(107, 75, 230, 0.12);
+}
+
+.vacation-search input {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #17142a;
+  font: inherit;
+  font-size: 14px;
+}
+
+.vacation-search input::placeholder {
+  color: #9892a3;
+}
+
+.vacation-filter {
+  position: relative;
+  width: 180px;
+  height: 43px;
+  display: flex;
+  align-items: center;
+}
+
+.vacation-filter select {
+  width: 100%;
+  height: 100%;
+  appearance: none;
+  padding: 0 38px 0 13px;
+  border: 1px solid #d9d3e7;
+  border-radius: 10px;
+  outline: 0;
+  background: #fff;
+  color: #514b64;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+}
+
+.vacation-filter select:focus {
+  border-color: #6b4be6;
+  box-shadow: 0 0 0 4px rgba(107, 75, 230, 0.12);
+}
+
+.vacation-filter svg {
+  position: absolute;
+  right: 12px;
+  pointer-events: none;
+  color: #716b7d;
+}
+
+/* =========================================================
+   TABELA DE SOLICITAÇÕES
+========================================================= */
+
+.vacation-table-header,
+.vacation-row {
+  display: grid;
+  grid-template-columns:
+    minmax(190px, 1.55fr)
+    minmax(155px, 1fr)
+    70px
+    minmax(140px, 1fr)
+    105px
+    minmax(190px, 1.25fr);
+  gap: 18px;
+  align-items: center;
+}
+
+.vacation-table-header {
+  min-height: 48px;
+  padding: 0 25px;
+  border-bottom: 1px solid #eeeaf5;
+  background: #fcfbfe;
+  color: #817a8e;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.vacation-row {
+  min-height: 92px;
+  padding: 15px 25px;
+  border-bottom: 1px solid #f0edf5;
+  transition: background 0.15s ease;
+}
+
+.vacation-row:last-child {
+  border-bottom: 0;
+}
+
+.vacation-row:hover {
+  background: #fcfaff;
+}
+
+.vacation-employee {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.vacation-avatar {
+  width: 39px;
+  height: 39px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #e9e3ff;
+  color: #6345d3;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.vacation-employee strong,
+.vacation-employee span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vacation-employee strong {
+  color: #272231;
+  font-size: 14px;
+}
+
+.vacation-employee span {
+  margin-top: 3px;
+  color: #888193;
+  font-size: 11px;
+}
+
+.vacation-period {
+  color: #393342;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.vacation-days {
+  color: #393342;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.vacation-reason {
+  overflow: hidden;
+  color: #777080;
+  font-size: 12px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.vacation-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 6px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.vacation-status-pending {
+  background: #fff5d8;
+  color: #9a6b00;
+}
+
+.vacation-status-approved {
+  background: #e9f9ef;
+  color: #168b4a;
+}
+
+.vacation-status-rejected {
+  background: #fff0f0;
+  color: #b33a3a;
+}
+
+/* =========================================================
+   AÇÕES ADM / RH
+========================================================= */
+
+.vacation-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.vacation-action {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 9px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.vacation-action:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.vacation-action-approve {
+  border: 1px solid #cce8d7;
+  background: #f3fbf6;
+  color: #168b4a;
+}
+
+.vacation-action-approve:hover:not(:disabled) {
+  background: #e9f9ef;
+}
+
+.vacation-action-reject {
+  border: 1px solid #efd0d0;
+  background: #fff7f7;
+  color: #b33a3a;
+}
+
+.vacation-action-reject:hover:not(:disabled) {
+  background: #fff0f0;
+}
+
+.vacation-no-action {
+  color: #96909f;
+  font-size: 11px;
+}
+
+/* =========================================================
+   ESTADOS
+========================================================= */
+
+.vacation-state {
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 35px 20px;
+  text-align: center;
+}
+
+.vacation-state h2 {
+  margin: 14px 0 5px;
+  color: #292431;
+  font-size: 17px;
+}
+
+.vacation-state p {
+  margin: 0;
+  color: #888193;
+  font-size: 13px;
+}
+
+.vacation-empty-icon {
+  width: 53px;
+  height: 53px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  background: #eeeaff;
+  color: #6b4be6;
+}
+
+.vacation-spinner {
+  width: 29px;
+  height: 29px;
+  margin-bottom: 13px;
+  border: 3px solid #e7e1f6;
+  border-top-color: #6b4be6;
+  border-radius: 50%;
+  animation: vacation-spin 0.8s linear infinite;
+}
+
+@keyframes vacation-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   ÁREA DO COLABORADOR
+   SOLICITAÇÃO DE FÉRIAS
+========================================================= */
+
+.vacation-request-card {
+  width: 100%;
+  margin-bottom: 30px;
+  padding: 26px;
+  border: 1px solid #e7e3f1;
+  border-radius: 19px;
+  background: #fff;
+}
+
+.vacation-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 25px;
+}
+
+.vacation-section-icon {
+  width: 43px;
+  height: 43px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 43px;
+  border-radius: 11px;
+  background: rgba(165, 146, 239, 0.2);
+  color: #6345d3;
+}
+
+.vacation-section-heading h2 {
+  margin: 0;
+  color: #25212e;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.vacation-section-heading p {
+  margin: 5px 0 0;
+  color: #817a8e;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.vacation-request-form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.vacation-form-grid {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr)
+    180px;
+  gap: 17px;
+  align-items: end;
+}
+
+.vacation-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.vacation-field > span {
+  color: #4e485b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.vacation-field input,
+.vacation-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d9d3e7;
+  border-radius: 10px;
+  outline: none;
+  background: #fff;
+  color: #17142a;
+  font-family: inherit;
+  font-size: 14px;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.vacation-field input {
+  height: 44px;
+  padding: 0 12px;
+}
+
+.vacation-field textarea {
+  min-height: 105px;
+  padding: 12px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.vacation-field input:focus,
+.vacation-field textarea:focus {
+  border-color: #6b4be6;
+  box-shadow: 0 0 0 4px rgba(107, 75, 230, 0.12);
+}
+
+.vacation-field textarea::placeholder,
+.vacation-field input::placeholder {
+  color: #9a94a5;
+}
+
+.vacation-field > small {
+  align-self: flex-end;
+  margin-top: -3px;
+  color: #9992a3;
+  font-size: 11px;
+}
+
+/* =========================================================
+   CONTADOR DE DIAS
+========================================================= */
+
+.vacation-days-preview {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  box-sizing: border-box;
+  padding: 0 13px;
+  border: 1px solid #e3ddf3;
+  border-radius: 10px;
+  background: #faf8ff;
+}
+
+.vacation-days-preview > span {
+  color: #716b7d;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.vacation-days-preview strong {
+  margin-left: auto;
+  color: #6345d3;
+  font-size: 21px;
+  line-height: 1;
+}
+
+.vacation-days-preview small {
+  color: #716b7d;
+  font-size: 11px;
+}
+
+/* =========================================================
+   FORMULÁRIO DO COLABORADOR
+========================================================= */
+
+.vacation-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 4px;
+}
+
+.vacation-form-footer p {
+  margin: 0;
+  color: #817a8e;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.vacation-submit-button {
+  min-width: 165px;
+  height: 43px;
+  padding: 0 18px;
+  border: 1px solid #6b4be6;
+  border-radius: 10px;
+  background: #6b4be6;
+  color: #fff;
+  box-shadow: 0 8px 17px rgba(107, 75, 230, 0.19);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.vacation-submit-button:hover:not(:disabled) {
+  background: #583acb;
+  transform: translateY(-1px);
+}
+
+.vacation-submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   MINHAS SOLICITAÇÕES
+========================================================= */
+
+.vacation-my-requests {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid #e7e3f1;
+  border-radius: 19px;
+  background: #fff;
+}
+
+.vacation-section-title {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px 26px;
+  border-bottom: 1px solid #eeeaf5;
+}
+
+.vacation-section-title .vacation-eyebrow {
+  margin-bottom: 5px;
+}
+
+.vacation-section-title h2 {
+  margin: 0;
+  color: #292431;
+  font-size: 21px;
+  line-height: 1.2;
+}
+
+.vacation-section-title > span {
+  color: #817a8e;
+  font-size: 12px;
+}
+
+.vacation-state-small {
+  min-height: 230px;
+}
+
+/* =========================================================
+   LISTA DE FÉRIAS DO COLABORADOR
+========================================================= */
+
+.employee-vacation-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.employee-vacation-item {
+  display: grid;
+  grid-template-columns:
+    minmax(200px, 1.4fr)
+    minmax(180px, 1fr)
+    auto;
+  gap: 24px;
+  align-items: center;
+  min-height: 92px;
+  padding: 16px 26px;
+  border-bottom: 1px solid #f0edf5;
+}
+
+.employee-vacation-item:last-child {
+  border-bottom: 0;
+}
+
+.employee-vacation-item:hover {
+  background: #fcfaff;
+}
+
+.employee-vacation-period {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.employee-vacation-calendar {
+  width: 39px;
+  height: 39px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 39px;
+  border-radius: 10px;
+  background: #eeeaff;
+  color: #6345d3;
+}
+
+.employee-vacation-period strong,
+.employee-vacation-period span {
+  display: block;
+}
+
+.employee-vacation-period strong {
+  color: #332f3b;
+  font-size: 13px;
+}
+
+.employee-vacation-period span {
+  margin-top: 4px;
+  color: #817a8e;
+  font-size: 12px;
+}
+
+.employee-vacation-reason > span {
+  display: block;
+  margin-bottom: 4px;
+  color: #938c9c;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.employee-vacation-reason p {
+  overflow: hidden;
+  margin: 0;
+  color: #625c6b;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.employee-vacation-status {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.employee-cancel-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #b33a3a;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.employee-cancel-button:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.employee-cancel-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   RESPONSIVIDADE ADM / RH
+========================================================= */
+
+@media (max-width: 1050px) {
+  .vacation-table-header {
+    display: none;
+  }
+
+  .vacation-row {
+    grid-template-columns: 1.6fr 1fr 80px;
+    gap: 12px 20px;
+    padding: 20px 25px;
+  }
+
+  .vacation-row > div:nth-child(4) {
+    grid-column: 1 / 2;
+  }
+
+  .vacation-row > div:nth-child(5) {
+    grid-column: 2 / 3;
+  }
+
+  .vacation-row > div:nth-child(6) {
+    grid-column: 3 / 4;
+  }
+}
+
+/* =========================================================
+   RESPONSIVIDADE GERAL
+========================================================= */
+
+@media (max-width: 700px) {
+  .vacation-page {
+    padding: 30px 16px;
+  }
+
+  .vacation-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .vacation-pending-card {
+    width: fit-content;
+  }
+
+  .vacation-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .vacation-search {
+    width: 100%;
+  }
+
+  .vacation-filter {
+    width: 100%;
+  }
+
+  .vacation-row {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 13px;
+  }
+
+  .vacation-row > div {
+    width: 100%;
+  }
+
+  .vacation-actions {
+    width: 100%;
+  }
+
+  .vacation-action {
+    flex: 1;
+  }
+}
+
+/* =========================================================
+   RESPONSIVIDADE DO COLABORADOR
+========================================================= */
+
+@media (max-width: 850px) {
+  .vacation-form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .vacation-days-preview {
+    grid-column: 1 / -1;
+    width: 180px;
+  }
+
+  .employee-vacation-item {
+    grid-template-columns: 1fr auto;
+  }
+
+  .employee-vacation-reason {
+    grid-column: 1 / -1;
+  }
+
+  .employee-vacation-status {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
+@media (max-width: 600px) {
+  .vacation-request-card {
+    padding: 20px;
+  }
+
+  .vacation-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vacation-days-preview {
+    grid-column: auto;
+    width: 100%;
+  }
+
+  .vacation-form-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .vacation-submit-button {
+    width: 100%;
+  }
+
+  .vacation-section-title {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .employee-vacation-item {
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 15px;
+    padding: 20px;
+  }
+
+  .employee-vacation-reason {
+    width: 100%;
+  }
+
+  .employee-vacation-status {
+    width: 100%;
+    align-items: flex-start;
+  }
+}
