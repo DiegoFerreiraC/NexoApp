@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import {
   Bell,
   CalendarDays,
-  FileText,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -28,17 +27,16 @@ const navigationItems = [
     path: "/dashboard",
   },
   {
-    label: "Documentos",
-    icon: FileText,
-  },
-  {
     label: "Colaboradores",
     icon: UsersRound,
     path: "/colaboradores",
+    adminOnly: true,
   },
   {
     label: "Admissões",
     icon: UserPlus,
+    path: "/colaboradores/cadastro",
+    adminOnly: true,
   },
   {
     label: "Férias",
@@ -48,6 +46,7 @@ const navigationItems = [
   {
     label: "Folha de pagamento",
     icon: WalletCards,
+    path: "/folha",
   },
 ];
 
@@ -59,6 +58,54 @@ function DashboardLayout({ children }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [notice, setNotice] = useState("");
+  const [role, setRole] = useState(null);
+  const [roleLoading, setRoleLoading] = useState(true);
+  const [employeeName, setEmployeeName] = useState("");
+
+  useEffect(() => {
+    loadProfileRole();
+  }, []);
+
+  async function loadProfileRole() {
+    setRoleLoading(true);
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setRoleLoading(false);
+      return;
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("role, employee_id")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError || !profile) {
+      console.error("Erro ao carregar perfil:", profileError);
+      setRoleLoading(false);
+      return;
+    }
+
+    setRole(profile.role);
+
+    if (profile.employee_id) {
+      const { data: employee, error: employeeError } = await supabase
+        .from("employees")
+        .select("full_name")
+        .eq("id", profile.employee_id)
+        .single();
+
+      if (!employeeError && employee) {
+        setEmployeeName(employee.full_name);
+      }
+    }
+
+    setRoleLoading(false);
+  }
 
   function isActive(path) {
     if (path === "/colaboradores") {
@@ -69,7 +116,10 @@ function DashboardLayout({ children }) {
   }
 
   function handleUnavailableAction(label) {
-    setNotice(`${label}: este módulo será disponibilizado nas próximas etapas do MVP.`);
+    setNotice(
+      `${label}: este módulo será disponibilizado nas próximas etapas do MVP.`
+    );
+
     setMenuOpen(false);
     setProfileMenuOpen(false);
   }
@@ -77,7 +127,6 @@ function DashboardLayout({ children }) {
   function handleNavigation(item) {
     if (!item.path) {
       handleUnavailableAction(item.label);
-
       return;
     }
 
@@ -93,12 +142,24 @@ function DashboardLayout({ children }) {
     if (error) {
       console.error("Erro ao sair:", error);
       setLoading(false);
-
       return;
     }
 
     navigate("/", { replace: true });
   }
+
+  const isAdminArea = role === "hr" || role === "admin";
+
+  const visibleNavigationItems = navigationItems.filter((item) => {
+    if (item.adminOnly) {
+      return isAdminArea;
+    }
+
+    return true;
+  });
+
+  const profileInitial =
+    employeeName?.trim()?.charAt(0)?.toUpperCase() || "?";
 
   return (
     <div className="dashboard-shell">
@@ -111,24 +172,37 @@ function DashboardLayout({ children }) {
           className="dashboard-navigation"
           aria-label="Navegação principal"
         >
-          {navigationItems.map(({ label, icon: Icon, path }) => (
-            <button
-              className={`dashboard-nav-item ${isActive(path) ? "is-active" : ""}`}
-              type="button"
-              key={label}
-              onClick={() => handleNavigation({ label, path })}
-            >
-              <Icon size={18} strokeWidth={isActive(path) ? 2.4 : 2} />
+          {!roleLoading &&
+            visibleNavigationItems.map(
+              ({ label, icon: Icon, path }) => (
+                <button
+                  className={`dashboard-nav-item ${isActive(path) ? "is-active" : ""
+                    }`}
+                  type="button"
+                  key={label}
+                  onClick={() =>
+                    handleNavigation({ label, path })
+                  }
+                >
+                  <Icon
+                    size={18}
+                    strokeWidth={
+                      isActive(path) ? 2.4 : 2
+                    }
+                  />
 
-              <span>{label}</span>
-            </button>
-          ))}
+                  <span>{label}</span>
+                </button>
+              )
+            )}
         </nav>
 
         <button
           className="dashboard-nav-item dashboard-settings"
           type="button"
-          onClick={() => handleUnavailableAction("Configurações")}
+          onClick={() =>
+            handleUnavailableAction("Configurações")
+          }
         >
           <Settings size={18} />
 
@@ -150,7 +224,9 @@ function DashboardLayout({ children }) {
           <button
             className="dashboard-menu-button"
             type="button"
-            aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
+            aria-label={
+              menuOpen ? "Fechar menu" : "Abrir menu"
+            }
             onClick={() => setMenuOpen(!menuOpen)}
           >
             {menuOpen ? <X size={23} /> : <Menu size={23} />}
@@ -170,7 +246,9 @@ function DashboardLayout({ children }) {
               className="dashboard-icon-button"
               type="button"
               aria-label="Notificações"
-              onClick={() => handleUnavailableAction("Notificações")}
+              onClick={() =>
+                handleUnavailableAction("Notificações")
+              }
             >
               <Bell size={23} />
             </button>
@@ -181,16 +259,21 @@ function DashboardLayout({ children }) {
                 type="button"
                 aria-label="Abrir menu do perfil"
                 aria-expanded={profileMenuOpen}
-                onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                onClick={() =>
+                  setProfileMenuOpen(!profileMenuOpen)
+                }
               >
-                RH
+                {roleLoading ? "..." : profileInitial}
               </button>
 
               {profileMenuOpen && (
                 <div className="dashboard-profile-dropdown">
                   <button
                     type="button"
-                    onClick={() => handleUnavailableAction("Perfil")}
+                    onClick={() => {
+                      navigate("/perfil");
+                      setProfileMenuOpen(false);
+                    }}
                   >
                     <UserRound size={18} />
 
@@ -204,7 +287,9 @@ function DashboardLayout({ children }) {
                   >
                     <LogOut size={18} />
 
-                    {loading ? "Saindo..." : "Sair da conta"}
+                    {loading
+                      ? "Saindo..."
+                      : "Sair da conta"}
                   </button>
                 </div>
               )}
@@ -213,10 +298,16 @@ function DashboardLayout({ children }) {
         </header>
 
         {notice && (
-          <p className="dashboard-layout-notice" role="status">
+          <p
+            className="dashboard-layout-notice"
+            role="status"
+          >
             {notice}
 
-            <button type="button" onClick={() => setNotice("")}>
+            <button
+              type="button"
+              onClick={() => setNotice("")}
+            >
               Fechar
             </button>
           </p>

@@ -1,5 +1,6 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "../services/supabase";
 
 import {
   BarChart3,
@@ -34,6 +35,8 @@ const quickActions = [
 function Dashboard() {
   const navigate = useNavigate();
   const [notice, setNotice] = useState("");
+  const [role, setRole] = useState(null);
+  const [roleLoading, setRoleLoading] = useState(true);
 
   function handleQuickAction(label) {
     if (label === "Adicionar colaborador") {
@@ -49,6 +52,35 @@ function Dashboard() {
     setNotice(
       `${label}: este módulo será disponibilizado nas próximas etapas do MVP.`
     );
+  }
+  useEffect(() => {
+    loadUserRole();
+  }, []);
+
+  async function loadUserRole() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setRoleLoading(false);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (error) {
+      console.error("Erro ao carregar perfil:", error);
+      setRoleLoading(false);
+      return;
+    }
+
+    setRole(data.role);
+    setRoleLoading(false);
   }
 
   return (
@@ -81,45 +113,46 @@ function Dashboard() {
             alt="Equipe colaborando em atividades de RH"
           />
         </section>
+        {!roleLoading && role !== "employee" && (
 
-        <section
-          className="quick-access"
-          aria-labelledby="quick-access-title"
-        >
-          <div className="quick-access-heading">
-            <div>
-              <p className="section-kicker">
-                Atalhos
-              </p>
+          <section
+            className="quick-access"
+            aria-labelledby="quick-access-title"
+          >
+            <div className="quick-access-heading">
+              <div>
+                <p className="section-kicker">
+                  Atalhos
+                </p>
 
-              <h2 id="quick-access-title">
-                Acesso rápido
-              </h2>
+                <h2 id="quick-access-title">
+                  Acesso rápido
+                </h2>
+              </div>
+
+              <span>Rotinas mais usadas</span>
             </div>
 
-            <span>Rotinas mais usadas</span>
-          </div>
+            <div className="quick-actions-grid">
+              {quickActions.map(
+                ({ label, icon: Icon }) => (
+                  <button
+                    className="quick-action"
+                    type="button"
+                    key={label}
+                    onClick={() => handleQuickAction(label)}
+                  >
+                    <span className="quick-action-icon">
+                      <Icon size={29} strokeWidth={1.9} />
+                    </span>
 
-          <div className="quick-actions-grid">
-            {quickActions.map(
-              ({ label, icon: Icon }) => (
-                <button
-                  className="quick-action"
-                  type="button"
-                  key={label}
-                  onClick={() => handleQuickAction(label)}
-                >
-                  <span className="quick-action-icon">
-                    <Icon size={29} strokeWidth={1.9} />
-                  </span>
-
-                  <span>{label}</span>
-                </button>
-              )
-            )}
-          </div>
-        </section>
-
+                    <span>{label}</span>
+                  </button>
+                )
+              )}
+            </div>
+          </section>
+        )}
         {notice && (
           <p className="dashboard-notice" role="status">
             {notice}

@@ -5,6 +5,7 @@ import {
   ChevronDown,
   Clock,
   Search,
+  UserPlus,
   X,
 } from "lucide-react";
 import { supabase } from "../services/supabase";
@@ -105,6 +106,7 @@ function Vacations() {
     return (
       <EmployeeVacations
         employeeId={profile?.employee_id}
+        userId={profile?.id}
       />
     );
   }
@@ -116,7 +118,7 @@ function Vacations() {
    ÁREA DO COLABORADOR
 ========================================================= */
 
-function EmployeeVacations({ employeeId }) {
+function EmployeeVacations({ employeeId, userId }) {
   const [requests, setRequests] = useState([]);
   const [employee, setEmployee] = useState(null);
 
@@ -135,6 +137,8 @@ function EmployeeVacations({ employeeId }) {
     () => calculateDays(startDate, endDate),
     [startDate, endDate]
   );
+
+  
 
   async function loadEmployeeData() {
     if (!employeeId) {
@@ -161,6 +165,7 @@ function EmployeeVacations({ employeeId }) {
           days,
           reason,
           status,
+          requested_by,
           created_at
         `)
         .eq("employee_id", employeeId)
@@ -219,6 +224,15 @@ function EmployeeVacations({ employeeId }) {
 
     setSubmitting(true);
 
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setError("Sua sessão expirou. Faça login novamente.");
+      return;
+    }
+
     const { error: insertError } = await supabase
       .from("vacation_requests")
       .insert({
@@ -228,6 +242,7 @@ function EmployeeVacations({ employeeId }) {
         days,
         reason: reason.trim() || null,
         status: "pending",
+        requested_by: user.id,
       });
 
     if (insertError) {
@@ -478,9 +493,18 @@ function EmployeeVacations({ employeeId }) {
 
                     <div className="employee-vacation-reason">
                       <span>Observação</span>
+
                       <p>
                         {request.reason || "Não informado"}
                       </p>
+
+                      <span className="employee-vacation-origin">
+                        {!request.requested_by
+                          ? "Solicitação de férias"
+                          : request.requested_by === userId
+                            ? "Solicitada por você"
+                            : "Encaminhada pelo RH"}
+                      </span>
                     </div>
 
                     <div className="employee-vacation-status">
@@ -527,6 +551,107 @@ function ManagerVacations() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const [employees, setEmployees] = useState([]);
+  const [showForwardForm, setShowForwardForm] = useState(false);
+
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
+  const [forwardStartDate, setForwardStartDate] = useState("");
+  const [forwardEndDate, setForwardEndDate] = useState("");
+  const [forwardReason, setForwardReason] = useState("");
+
+  const [forwardLoading, setForwardLoading] = useState(false);
+
+  const forwardDays = useMemo(
+  () => calculateDays(forwardStartDate, forwardEndDate),
+  [forwardStartDate, forwardEndDate]
+  );
+
+  async function loadEmployees() {
+    const { data, error } = await supabase
+      .from("employees")
+      .select("id, full_name, email, status")
+      .eq("status", "active")
+      .order("full_name");
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    setEmployees(data || []);
+  }
+
+
+  async function handleForwardVacation(event) {
+    event.preventDefault();
+
+    setError("");
+    setSuccess("");
+
+    if (!selectedEmployeeId) {
+      setError("Selecione um colaborador.");
+      return;
+    }
+
+    if (!forwardStartDate || !forwardEndDate) {
+      setError("Informe a data de início e a data de término.");
+      return;
+    }
+
+    if (forwardDays <= 0) {
+      setError(
+        "A data de término deve ser igual ou posterior à data de início."
+      );
+      return;
+    }
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setError("Sua sessão expirou. Faça login novamente.");
+      return;
+    }
+
+    setForwardLoading(true);
+
+    const { error: insertError } = await supabase
+      .from("vacation_requests")
+      .insert({
+        employee_id: selectedEmployeeId,
+        start_date: forwardStartDate,
+        end_date: forwardEndDate,
+        days: forwardDays,
+        reason: forwardReason.trim() || null,
+        status: "pending",
+        requested_by: user.id,
+      });
+
+    if (insertError) {
+      console.error(insertError);
+
+      setError(
+        "Não foi possível encaminhar a solicitação de férias."
+      );
+
+      setForwardLoading(false);
+      return;
+    }
+
+    setSuccess(
+      "Solicitação encaminhada para aprovação com sucesso."
+    );
+
+    setSelectedEmployeeId("");
+    setForwardStartDate("");
+    setForwardEndDate("");
+    setForwardReason("");
+    setShowForwardForm(false);
+    await loadRequests();
+    setForwardLoading(false);
+  }
+
   async function loadRequests() {
     setLoading(true);
     setError("");
@@ -566,6 +691,7 @@ function ManagerVacations() {
 
   useEffect(() => {
     loadRequests();
+    loadEmployees();
   }, []);
 
   const filteredRequests = useMemo(() => {
@@ -602,8 +728,7 @@ function ManagerVacations() {
       newStatus === "approved" ? "aprovar" : "reprovar";
 
     const confirmed = window.confirm(
-      `Deseja ${actionText} a solicitação de ${
-        request.employees?.full_name || "este colaborador"
+      `Deseja ${actionText} a solicitação de ${request.employees?.full_name || "este colaborador"
       }?`
     );
 
@@ -642,10 +767,8 @@ function ManagerVacations() {
     }
 
     setSuccess(
-      `Solicitação de ${
-        request.employees?.full_name || "colaborador"
-      } ${
-        newStatus === "approved" ? "aprovada" : "reprovada"
+      `Solicitação de ${request.employees?.full_name || "colaborador"
+      } ${newStatus === "approved" ? "aprovada" : "reprovada"
       } com sucesso.`
     );
 
@@ -655,236 +778,393 @@ function ManagerVacations() {
 
   return (
     <DashboardLayout>
-    <main className="vacation-page">
-      <div className="vacation-container">
-        <header className="vacation-header">
-          <div>
-            <p className="vacation-eyebrow">Gestão de pessoas</p>
-
-            <h1>Gestão de férias</h1>
-
-            <p>
-              Consulte e gerencie as solicitações de férias dos
-              colaboradores.
-            </p>
-          </div>
-
-          <div className="vacation-pending-card">
-            <span className="vacation-pending-icon">
-              <Clock size={21} strokeWidth={2} />
-            </span>
-
+      <main className="vacation-page">
+        <div className="vacation-container">
+          <header className="vacation-header">
             <div>
-              <strong>{pendingCount}</strong>
-              <span>
-                pendente{pendingCount === 1 ? "" : "s"}
-              </span>
-            </div>
-          </div>
-        </header>
+              <p className="vacation-eyebrow">Gestão de pessoas</p>
 
-        {error && (
-          <div className="vacation-message vacation-message-error">
-            <span>{error}</span>
-
-            <button
-              type="button"
-              onClick={() => setError("")}
-              aria-label="Fechar mensagem"
-            >
-              <X size={17} />
-            </button>
-          </div>
-        )}
-
-        {success && (
-          <div className="vacation-message vacation-message-success">
-            <span>{success}</span>
-
-            <button
-              type="button"
-              onClick={() => setSuccess("")}
-              aria-label="Fechar mensagem"
-            >
-              <X size={17} />
-            </button>
-          </div>
-        )}
-
-        <section className="vacation-card">
-          <div className="vacation-toolbar">
-            <div className="vacation-search">
-              <Search size={18} strokeWidth={1.9} />
-
-              <input
-                type="search"
-                placeholder="Buscar colaborador..."
-                value={search}
-                onChange={(event) =>
-                  setSearch(event.target.value)
-                }
-              />
-            </div>
-
-            <div className="vacation-filter">
-              <select
-                value={statusFilter}
-                onChange={(event) =>
-                  setStatusFilter(event.target.value)
-                }
-                aria-label="Filtrar por status"
-              >
-                {STATUS_OPTIONS.map((option) => (
-                  <option
-                    key={option.value}
-                    value={option.value}
-                  >
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-
-              <ChevronDown size={17} strokeWidth={1.9} />
-            </div>
-          </div>
-
-          <div className="vacation-table-header">
-            <span>Colaborador</span>
-            <span>Período</span>
-            <span>Dias</span>
-            <span>Motivo</span>
-            <span>Status</span>
-            <span>Ações</span>
-          </div>
-
-          {loading ? (
-            <div className="vacation-state">
-              <div className="vacation-spinner" />
-              <p>Carregando solicitações...</p>
-            </div>
-          ) : filteredRequests.length === 0 ? (
-            <div className="vacation-state">
-              <div className="vacation-empty-icon">
-                <CalendarEmptyIcon />
-              </div>
-
-              <h2>
-                {requests.length === 0
-                  ? "Nenhuma solicitação encontrada"
-                  : "Nenhum resultado encontrado"}
-              </h2>
+              <h1>Gestão de férias</h1>
 
               <p>
-                {requests.length === 0
-                  ? "As solicitações de férias aparecerão aqui."
-                  : "Tente alterar a busca ou o filtro de status."}
+                Consulte e gerencie as solicitações de férias dos
+                colaboradores.
               </p>
             </div>
-          ) : (
-            <div className="vacation-list">
-              {filteredRequests.map((request) => {
-                const employeeName =
-                  request.employees?.full_name ||
-                  "Colaborador não identificado";
 
-                const employeeEmail =
-                  request.employees?.email || "";
+            <button
+              type="button"
+              className="vacation-forward-button"
+              onClick={() => {
+                setShowForwardForm(true);
+                setError("");
+                setSuccess("");
+              }}
+            >
+              <UserPlus size={18} />
+              <span>Encaminhar colaborador</span>
+            </button>
 
-                const isPending = request.status === "pending";
-                const isLoading = actionLoading === request.id;
+            <div className="vacation-pending-card">
+              <span className="vacation-pending-icon">
+                <Clock size={21} strokeWidth={2} />
+              </span>
 
-                return (
-                  <article
-                    className="vacation-row"
-                    key={request.id}
+              <div>
+                <strong>{pendingCount}</strong>
+                <span>
+                  pendente{pendingCount === 1 ? "" : "s"}
+                </span>
+              </div>
+            </div>
+          </header>
+          {showForwardForm && (
+            <section className="vacation-request-card vacation-manager-request-card">
+              <div className="vacation-section-heading">
+                <div className="vacation-section-icon">
+                  <UserPlus size={21} />
+                </div>
+
+                <div>
+                  <h2>Encaminhar colaborador para férias</h2>
+
+                  <p>
+                    Informe o período combinado com o colaborador.
+                    A solicitação ficará pendente para aprovação.
+                  </p>
+                </div>
+              </div>
+
+              <form
+                className="vacation-request-form"
+                onSubmit={handleForwardVacation}
+              >
+                <label className="vacation-field vacation-field-full">
+                  <span>Colaborador</span>
+
+                  <select
+                    value={selectedEmployeeId}
+                    onChange={(event) =>
+                      setSelectedEmployeeId(event.target.value)
+                    }
                   >
-                    <div className="vacation-employee">
-                      <div className="vacation-avatar">
-                        {employeeName.charAt(0).toUpperCase()}
+                    <option value="">
+                      Selecione um colaborador
+                    </option>
+
+                    {employees.map((employee) => (
+                      <option
+                        key={employee.id}
+                        value={employee.id}
+                      >
+                        {employee.full_name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <div className="vacation-form-grid">
+                  <label className="vacation-field">
+                    <span>Data de início</span>
+
+                    <input
+                      type="date"
+                      value={forwardStartDate}
+                      onChange={(event) =>
+                        setForwardStartDate(event.target.value)
+                      }
+                    />
+                  </label>
+
+                  <label className="vacation-field">
+                    <span>Data de término</span>
+
+                    <input
+                      type="date"
+                      value={forwardEndDate}
+                      min={forwardStartDate || undefined}
+                      onChange={(event) =>
+                        setForwardEndDate(event.target.value)
+                      }
+                    />
+                  </label>
+
+                  <div className="vacation-days-preview">
+                    <span>Quantidade de dias</span>
+
+                    <strong>
+                      {forwardStartDate && forwardEndDate
+                        ? calculateDays(
+                          forwardStartDate,
+                          forwardEndDate
+                        )
+                        : "—"}
+                    </strong>
+
+                    {forwardStartDate &&
+                      forwardEndDate &&
+                      calculateDays(
+                        forwardStartDate,
+                        forwardEndDate
+                      ) > 0 && (
+                        <small>
+                          {calculateDays(
+                            forwardStartDate,
+                            forwardEndDate
+                          ) === 1
+                            ? "dia"
+                            : "dias"}
+                        </small>
+                      )}
+                  </div>
+                </div>
+
+                <label className="vacation-field">
+                  <span>Motivo ou observação</span>
+
+                  <textarea
+                    value={forwardReason}
+                    onChange={(event) =>
+                      setForwardReason(event.target.value)
+                    }
+                    placeholder="Informe uma observação, se necessário..."
+                    rows={4}
+                    maxLength={500}
+                  />
+
+                  <small>{forwardReason.length}/500</small>
+                </label>
+
+                <div className="vacation-form-footer vacation-manager-form-footer">
+                  <p>
+                    A solicitação será enviada para aprovação do RH.
+                  </p>
+
+                  <div className="vacation-manager-form-actions">
+                    <button
+                      type="button"
+                      className="vacation-cancel-form-button"
+                      onClick={() => setShowForwardForm(false)}
+                    >
+                      Cancelar
+                    </button>
+
+                    <button
+                      type="submit"
+                      className="vacation-submit-button"
+                      disabled={forwardLoading}
+                    >
+                      {forwardLoading
+                        ? "Enviando..."
+                        : "Encaminhar para aprovação"}
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </section>
+          )}
+          {error && (
+            <div className="vacation-message vacation-message-error">
+              <span>{error}</span>
+
+              <button
+                type="button"
+                onClick={() => setError("")}
+                aria-label="Fechar mensagem"
+              >
+                <X size={17} />
+              </button>
+            </div>
+          )}
+
+          {success && (
+            <div className="vacation-message vacation-message-success">
+              <span>{success}</span>
+
+              <button
+                type="button"
+                onClick={() => setSuccess("")}
+                aria-label="Fechar mensagem"
+              >
+                <X size={17} />
+              </button>
+            </div>
+          )}
+          
+          <section className="vacation-card">
+            <div className="vacation-toolbar">
+              <div className="vacation-search">
+                <Search size={18} strokeWidth={1.9} />
+
+                <input
+                  type="search"
+                  placeholder="Buscar colaborador..."
+                  value={search}
+                  onChange={(event) =>
+                    setSearch(event.target.value)
+                  }
+                />
+              </div>
+
+              <div className="vacation-filter">
+                <select
+                  value={statusFilter}
+                  onChange={(event) =>
+                    setStatusFilter(event.target.value)
+                  }
+                  aria-label="Filtrar por status"
+                >
+                  {STATUS_OPTIONS.map((option) => (
+                    <option
+                      key={option.value}
+                      value={option.value}
+                    >
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+
+                <ChevronDown size={17} strokeWidth={1.9} />
+              </div>
+            </div>
+
+            <div className="vacation-table-header">
+              <span>Colaborador</span>
+              <span>Período</span>
+              <span>Dias</span>
+              <span>Motivo</span>
+              <span>Status</span>
+              <span>Ações</span>
+            </div>
+
+            {loading ? (
+              <div className="vacation-state">
+                <div className="vacation-spinner" />
+                <p>Carregando solicitações...</p>
+              </div>
+            ) : filteredRequests.length === 0 ? (
+              <div className="vacation-state">
+                <div className="vacation-empty-icon">
+                  <CalendarEmptyIcon />
+                </div>
+
+                <h2>
+                  {requests.length === 0
+                    ? "Nenhuma solicitação encontrada"
+                    : "Nenhum resultado encontrado"}
+                </h2>
+
+                <p>
+                  {requests.length === 0
+                    ? "As solicitações de férias aparecerão aqui."
+                    : "Tente alterar a busca ou o filtro de status."}
+                </p>
+              </div>
+            ) : (
+              <div className="vacation-list">
+                {filteredRequests.map((request) => {
+                  const employeeName =
+                    request.employees?.full_name ||
+                    "Colaborador não identificado";
+
+                  const employeeEmail =
+                    request.employees?.email || "";
+
+                  const isPending = request.status === "pending";
+                  const isLoading = actionLoading === request.id;
+
+                  return (
+                    <article
+                      className="vacation-row"
+                      key={request.id}
+                    >
+                      <div className="vacation-employee">
+                        <div className="vacation-avatar">
+                          {employeeName.charAt(0).toUpperCase()}
+                        </div>
+
+                        <div>
+                          <strong>{employeeName}</strong>
+                          <span>{employeeEmail}</span>
+                        </div>
+                      </div>
+
+                      <div className="vacation-period">
+                        {formatPeriod(
+                          request.start_date,
+                          request.end_date
+                        )}
+                      </div>
+
+                      <div className="vacation-days">
+                        {request.days}{" "}
+                        {request.days === 1 ? "dia" : "dias"}
+                      </div>
+
+                      <div className="vacation-reason">
+                        {request.reason || "Não informado"}
                       </div>
 
                       <div>
-                        <strong>{employeeName}</strong>
-                        <span>{employeeEmail}</span>
-                      </div>
-                    </div>
-
-                    <div className="vacation-period">
-                      {formatPeriod(
-                        request.start_date,
-                        request.end_date
-                      )}
-                    </div>
-
-                    <div className="vacation-days">
-                      {request.days}{" "}
-                      {request.days === 1 ? "dia" : "dias"}
-                    </div>
-
-                    <div className="vacation-reason">
-                      {request.reason || "Não informado"}
-                    </div>
-
-                    <div>
-                      <span
-                        className={`vacation-status vacation-status-${request.status}`}
-                      >
-                        {STATUS_LABELS[request.status] ||
-                          request.status}
-                      </span>
-                    </div>
-
-                    <div className="vacation-actions">
-                      {isPending ? (
-                        <>
-                          <button
-                            type="button"
-                            className="vacation-action vacation-action-approve"
-                            onClick={() =>
-                              handleStatusChange(
-                                request,
-                                "approved"
-                              )
-                            }
-                            disabled={isLoading}
-                          >
-                            <Check size={17} />
-                            <span>
-                              {isLoading ? "..." : "Aprovar"}
-                            </span>
-                          </button>
-
-                          <button
-                            type="button"
-                            className="vacation-action vacation-action-reject"
-                            onClick={() =>
-                              handleStatusChange(
-                                request,
-                                "rejected"
-                              )
-                            }
-                            disabled={isLoading}
-                          >
-                            <X size={17} />
-                            <span>
-                              {isLoading ? "..." : "Reprovar"}
-                            </span>
-                          </button>
-                        </>
-                      ) : (
-                        <span className="vacation-no-action">
-                          Finalizada
+                        <span
+                          className={`vacation-status vacation-status-${request.status}`}
+                        >
+                          {STATUS_LABELS[request.status] ||
+                            request.status}
                         </span>
-                      )}
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          )}
-        </section>
-      </div>
-    </main>
+                      </div>
+
+                      <div className="vacation-actions">
+                        {isPending ? (
+                          <>
+                            <button
+                              type="button"
+                              className="vacation-action vacation-action-approve"
+                              onClick={() =>
+                                handleStatusChange(
+                                  request,
+                                  "approved"
+                                )
+                              }
+                              disabled={isLoading}
+                            >
+                              <Check size={17} />
+                              <span>
+                                {isLoading ? "..." : "Aprovar"}
+                              </span>
+                            </button>
+
+                            <button
+                              type="button"
+                              className="vacation-action vacation-action-reject"
+                              onClick={() =>
+                                handleStatusChange(
+                                  request,
+                                  "rejected"
+                                )
+                              }
+                              disabled={isLoading}
+                            >
+                              <X size={17} />
+                              <span>
+                                {isLoading ? "..." : "Reprovar"}
+                              </span>
+                            </button>
+                          </>
+                        ) : (
+                          <span className="vacation-no-action">
+                            Finalizada
+                          </span>
+                        )}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        </div>
+      </main>
     </DashboardLayout>
   );
 }

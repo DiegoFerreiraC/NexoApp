@@ -7,6 +7,8 @@ import EmployeesList from "./pages/EmployeesList";
 import EmployeeProfile from "./pages/EmployeeProfile";
 import AuthGuard from "./components/AuthGuard";
 import Vacations from "./pages/Vacations";
+import Payroll from "./pages/Payroll";
+import MyProfile from "./pages/MyProfile";
 
 function App() {
   return (
@@ -56,6 +58,22 @@ function App() {
           element={
             <AuthGuard>
               <Vacations />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/folha"
+          element={
+            <AuthGuard>
+              <Payroll />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/perfil"
+          element={
+            <AuthGuard>
+              <MyProfile />
             </AuthGuard>
           }
         />
