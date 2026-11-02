@@ -12,6 +12,12 @@ import { supabase } from "../services/supabase";
 import DashboardLayout from "../components/DashboardLayout";
 import "../styles/vacations.css";
 
+import CommandBus from "../commands/CommandBus";
+
+import CreateVacationRequestCommand from "../commands/CreateVacationRequestCommand";
+import ForwardVacationCommand from "../commands/ForwardVacationCommand";
+import ReviewVacationCommand from "../commands/ReviewVacationCommand";
+
 const STATUS_LABELS = {
   pending: "Pendente",
   approved: "Aprovada",
@@ -138,7 +144,6 @@ function EmployeeVacations({ employeeId, userId }) {
     [startDate, endDate]
   );
 
-  
 
   async function loadEmployeeData() {
     if (!employeeId) {
@@ -224,42 +229,34 @@ function EmployeeVacations({ employeeId, userId }) {
 
     setSubmitting(true);
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      setError("Sua sessão expirou. Faça login novamente.");
-      return;
-    }
-
-    const { error: insertError } = await supabase
-      .from("vacation_requests")
-      .insert({
+    try {
+      const command = new CreateVacationRequestCommand(supabase, {
         employee_id: employeeId,
         start_date: startDate,
         end_date: endDate,
         days,
         reason: reason.trim() || null,
-        status: "pending",
-        requested_by: user.id,
       });
 
-    if (insertError) {
-      console.error(insertError);
+      const { error: insertError } = await CommandBus.execute(command);
+
+      if (insertError) {
+        throw insertError;
+      }
+
+      setSuccess("Solicitação de férias enviada com sucesso.");
+
+      resetForm();
+      await loadEmployeeData();
+    } catch (error) {
+      console.error("Erro ao solicitar férias:", error);
+
       setError(
         "Não foi possível enviar sua solicitação. Tente novamente."
       );
+    } finally {
       setSubmitting(false);
-      return;
     }
-
-    setSuccess("Solicitação de férias enviada com sucesso.");
-
-    resetForm();
-    await loadEmployeeData();
-
-    setSubmitting(false);
   }
 
   async function handleCancel(request) {
@@ -562,8 +559,8 @@ function ManagerVacations() {
   const [forwardLoading, setForwardLoading] = useState(false);
 
   const forwardDays = useMemo(
-  () => calculateDays(forwardStartDate, forwardEndDate),
-  [forwardStartDate, forwardEndDate]
+    () => calculateDays(forwardStartDate, forwardEndDate),
+    [forwardStartDate, forwardEndDate]
   );
 
   async function loadEmployees() {
@@ -605,51 +602,43 @@ function ManagerVacations() {
       return;
     }
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      setError("Sua sessão expirou. Faça login novamente.");
-      return;
-    }
-
     setForwardLoading(true);
 
-    const { error: insertError } = await supabase
-      .from("vacation_requests")
-      .insert({
+    try {
+      const command = new ForwardVacationCommand(supabase, {
         employee_id: selectedEmployeeId,
         start_date: forwardStartDate,
         end_date: forwardEndDate,
         days: forwardDays,
         reason: forwardReason.trim() || null,
-        status: "pending",
-        requested_by: user.id,
       });
 
-    if (insertError) {
-      console.error(insertError);
+      const { error: insertError } = await CommandBus.execute(command);
+
+      if (insertError) {
+        throw insertError;
+      }
+
+      setSuccess(
+        "Solicitação encaminhada para aprovação com sucesso."
+      );
+
+      setSelectedEmployeeId("");
+      setForwardStartDate("");
+      setForwardEndDate("");
+      setForwardReason("");
+      setShowForwardForm(false);
+
+      await loadRequests();
+    } catch (error) {
+      console.error("Erro ao encaminhar férias:", error);
 
       setError(
         "Não foi possível encaminhar a solicitação de férias."
       );
-
+    } finally {
       setForwardLoading(false);
-      return;
     }
-
-    setSuccess(
-      "Solicitação encaminhada para aprovação com sucesso."
-    );
-
-    setSelectedEmployeeId("");
-    setForwardStartDate("");
-    setForwardEndDate("");
-    setForwardReason("");
-    setShowForwardForm(false);
-    await loadRequests();
-    setForwardLoading(false);
   }
 
   async function loadRequests() {
@@ -738,42 +727,35 @@ function ManagerVacations() {
     setError("");
     setSuccess("");
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    try {
+      const command = new ReviewVacationCommand(
+        supabase,
+        request.id,
+        newStatus
+      );
 
-    if (!user) {
-      setError("Sua sessão expirou. Faça login novamente.");
-      setActionLoading("");
-      return;
-    }
+      const { error: updateError } = await CommandBus.execute(command);
 
-    const { error: updateError } = await supabase
-      .from("vacation_requests")
-      .update({
-        status: newStatus,
-        approved_by: user.id,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", request.id);
+      if (updateError) {
+        throw updateError;
+      }
 
-    if (updateError) {
-      console.error(updateError);
+      setSuccess(
+        `Solicitação de ${request.employees?.full_name || "colaborador"
+        } ${newStatus === "approved" ? "aprovada" : "reprovada"
+        } com sucesso.`
+      );
+
+      await loadRequests();
+    } catch (error) {
+      console.error("Erro ao revisar férias:", error);
+
       setError(
         `Não foi possível ${actionText} a solicitação.`
       );
+    } finally {
       setActionLoading("");
-      return;
     }
-
-    setSuccess(
-      `Solicitação de ${request.employees?.full_name || "colaborador"
-      } ${newStatus === "approved" ? "aprovada" : "reprovada"
-      } com sucesso.`
-    );
-
-    await loadRequests();
-    setActionLoading("");
   }
 
   return (
@@ -990,7 +972,7 @@ function ManagerVacations() {
               </button>
             </div>
           )}
-          
+
           <section className="vacation-card">
             <div className="vacation-toolbar">
               <div className="vacation-search">

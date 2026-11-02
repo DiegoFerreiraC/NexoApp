@@ -9,6 +9,9 @@ import AuthGuard from "./components/AuthGuard";
 import Vacations from "./pages/Vacations";
 import Payroll from "./pages/Payroll";
 import MyProfile from "./pages/MyProfile";
+import TimeClock from "./pages/TimeClock";
+import TimeClockManagement from "./pages/TimeClockManagement";
+import Evaluations from "./pages/Evaluations";
 
 function App() {
   return (
@@ -74,6 +77,30 @@ function App() {
           element={
             <AuthGuard>
               <MyProfile />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/ponto"
+          element={
+            <AuthGuard>
+              <TimeClock />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/gestao-ponto"
+          element={
+            <AuthGuard>
+              <TimeClockManagement />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/avaliacoes"
+          element={
+            <AuthGuard>
+              <Evaluations />
             </AuthGuard>
           }
         />
