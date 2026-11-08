@@ -9,8 +9,6 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
-  Search,
-  Settings,
   UserPlus,
   UserRound,
   UsersRound,
@@ -381,14 +379,6 @@ function DashboardLayout({ children }) {
             ))}
         </nav>
 
-        <button
-          className="dashboard-nav-item dashboard-settings"
-          type="button"
-          onClick={() => handleUnavailableAction("Configurações")}
-        >
-          <Settings size={18} />
-          <span>Configurações</span>
-        </button>
       </aside>
 
       {menuOpen && (
@@ -410,14 +400,6 @@ function DashboardLayout({ children }) {
           >
             {menuOpen ? <X size={23} /> : <Menu size={23} />}
           </button>
-
-          <label className="dashboard-search">
-            <Search size={19} />
-            <input
-              type="search"
-              placeholder="Buscar colaborador, documento..."
-            />
-          </label>
 
           <div className="dashboard-header-actions">
             <div className="dashboard-notification-menu">

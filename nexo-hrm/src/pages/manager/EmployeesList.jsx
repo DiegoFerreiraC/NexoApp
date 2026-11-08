@@ -11,11 +11,11 @@ import {
   UsersRound,
 } from "lucide-react";
 
-import { supabase } from "../services/supabase";
+import { supabase } from "../../services/supabase";
 
-import DashboardLayout from "../components/DashboardLayout";
+import DashboardLayout from "../../components/DashboardLayout";
 
-import "../styles/employees.css";
+import "../../styles/employees.css";
 
 const employeesPerPage = 10;
 

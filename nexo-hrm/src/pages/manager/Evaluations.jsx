@@ -12,9 +12,9 @@ import {
 } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import DashboardLayout from "../components/DashboardLayout";
-import { supabase } from "../services/supabase";
-import "../styles/evaluations.css";
+import DashboardLayout from "../../components/DashboardLayout";
+import { supabase } from "../../services/supabase";
+import "../../styles/evaluations.css";
 
 const CRITERIA = [
   {

@@ -10,9 +10,9 @@ import {
   Send,
   X,
 } from "lucide-react";
-import DashboardLayout from "../components/DashboardLayout";
-import { supabase } from "../services/supabase";
-import "../styles/time-clock.css";
+import DashboardLayout from "../../components/DashboardLayout";
+import { supabase } from "../../services/supabase";
+import "../../styles/time-clock.css";
 
 
 const REQUEST_TYPES = [

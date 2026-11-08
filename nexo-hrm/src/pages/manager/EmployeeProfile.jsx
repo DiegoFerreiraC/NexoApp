@@ -13,11 +13,11 @@ import {
   UserRound,
 } from "lucide-react";
 
-import { supabase } from "../services/supabase";
+import { supabase } from "../../services/supabase";
 
-import DashboardLayout from "../components/DashboardLayout";
+import DashboardLayout from "../../components/DashboardLayout";
 
-import "../styles/employees.css";
+import "../../styles/employees.css";
 
 function formatCpf(value) {
   const digits = value.replace(/\D/g, "").slice(0, 11);

@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { Mail, Phone, CalendarDays, BriefcaseBusiness } from "lucide-react";
 
-import { supabase } from "../services/supabase";
-import DashboardLayout from "../components/DashboardLayout";
+import { supabase } from "../../services/supabase";
+import DashboardLayout from "../../components/DashboardLayout";
 
-import "../styles/myprofile.css";
+import "../../styles/myprofile.css";
 
 function formatDate(date) {
   if (!date) return "-";

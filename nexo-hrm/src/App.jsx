@@ -2,16 +2,16 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import FirstAccess from "./pages/FirstAccess";
 import Dashboard from "./pages/Dashboard";
-import EmployeeRegistration from "./pages/EmployeeRegistration";
-import EmployeesList from "./pages/EmployeesList";
-import EmployeeProfile from "./pages/EmployeeProfile";
+import EmployeeRegistration from "./pages/manager/EmployeeRegistration";
+import EmployeesList from "./pages/manager/EmployeesList";
+import EmployeeProfile from "./pages/manager/EmployeeProfile";
 import AuthGuard from "./components/AuthGuard";
 import Vacations from "./pages/Vacations";
 import Payroll from "./pages/Payroll";
-import MyProfile from "./pages/MyProfile";
-import TimeClock from "./pages/TimeClock";
-import TimeClockManagement from "./pages/TimeClockManagement";
-import Evaluations from "./pages/Evaluations";
+import MyProfile from "./pages/employee/MyProfile";
+import TimeClock from "./pages/employee/TimeClock";
+import TimeClockManagement from "./pages/manager/TimeClockManagement";
+import Evaluations from "./pages/manager/Evaluations";
 
 function App() {
   return (

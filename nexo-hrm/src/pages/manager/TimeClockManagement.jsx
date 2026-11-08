@@ -14,12 +14,12 @@ import {
   X,
   XCircle,
 } from "lucide-react";
-import DashboardLayout from "../components/DashboardLayout";
-import { supabase } from "../services/supabase";
-import "../styles/time-clock-management.css";
+import DashboardLayout from "../../components/DashboardLayout";
+import { supabase } from "../../services/supabase";
+import "../../styles/time-clock-management.css";
 
-import CommandBus from "../commands/CommandBus";
-import ReviewTimeAdjustmentCommand from "../commands/ReviewTimeAdjustmentCommand";
+import CommandBus from "../../commands/CommandBus";
+import ReviewTimeAdjustmentCommand from "../../commands/ReviewTimeAdjustmentCommand";
 
 const REQUEST_TYPES = {
   missing_punch: "Esquecimento / falta de batida",
