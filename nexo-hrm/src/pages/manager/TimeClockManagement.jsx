@@ -378,13 +378,18 @@ export default function TimeClockManagement() {
     setOpeningAttachmentId(request.id);
 
     try {
-      const { data, error: storageError } = await supabase.storage
-        .from("time-adjustment-attachments")
-        .createSignedUrl(request.attachment_path, 300);
 
-      if (storageError) throw storageError;
+      const { data, error: downloadError } =
+        await supabase.functions.invoke("r2-attachments", {
+          body: {
+            action: "download",
+            requestId: request.id,
+          },
+        });
 
-      if (!data?.signedUrl) {
+      if (downloadError) throw downloadError;
+
+      if (!data?.downloadUrl) {
         throw new Error("Não foi possível gerar o link do comprovante.");
       }
 
@@ -396,7 +401,7 @@ export default function TimeClockManagement() {
         path.endsWith(".png");
 
       setAttachmentPreview({
-        url: data.signedUrl,
+        url: data.downloadUrl,
         type: isImage ? "image" : "pdf",
         name: path.split("/").pop() || "Comprovante",
       });

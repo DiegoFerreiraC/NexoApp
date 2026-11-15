@@ -280,6 +280,7 @@ export default function TimeClock() {
     }
   }
 
+
   async function submitRequest(event) {
     event.preventDefault();
 
@@ -295,27 +296,10 @@ export default function TimeClock() {
       setError("Preencha a data, o motivo e a justificativa.");
       return;
     }
+
     if (requiresAttachment && !selectedFile) {
       setError("Anexe o atestado médico para continuar.");
       return;
-    }
-
-    if (selectedFile && allowsAttachment) {
-      const allowedTypes = [
-        "application/pdf",
-        "image/jpeg",
-        "image/png",
-      ];
-
-      if (!allowedTypes.includes(selectedFile.type)) {
-        setError("Envie um arquivo PDF, JPG ou PNG.");
-        return;
-      }
-
-      if (selectedFile.size > 5 * 1024 * 1024) {
-        setError("O arquivo deve ter no máximo 5 MB.");
-        return;
-      }
     }
 
     const requestedTimes = {
@@ -338,7 +322,6 @@ export default function TimeClock() {
       return;
     }
 
-
     setSubmitting(true);
 
     let attachmentPath = null;
@@ -353,26 +336,25 @@ export default function TimeClock() {
       if (userError) throw userError;
       if (!user) throw new Error("Sua sessão expirou. Faça login novamente.");
 
-      // Envia o comprovante para o Storage privado
+      // Envia o comprovante para a Cloudflare R2
       if (selectedFile && allowsAttachment) {
-        const extension = selectedFile.name
-          .split(".")
-          .pop()
-          .toLowerCase()
-          .replace(/[^a-z0-9]/g, "");
+        const uploadForm = new FormData();
+        uploadForm.append("action", "upload");
+        uploadForm.append("file", selectedFile);
+        uploadForm.append("requestId", requestId);
 
-        const fileName = `comprovante.${extension}`;
-
-        attachmentPath = `${user.id}/${requestId}/${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from("time-adjustment-attachments")
-          .upload(attachmentPath, selectedFile, {
-            contentType: selectedFile.type,
-            upsert: false,
+        const { data: uploadData, error: uploadError } =
+          await supabase.functions.invoke("r2-attachments", {
+            body: uploadForm,
           });
 
         if (uploadError) throw uploadError;
+
+        if (!uploadData?.attachmentPath) {
+          throw new Error("Não foi possível armazenar o comprovante.");
+        }
+
+        attachmentPath = uploadData.attachmentPath;
       }
 
       const { error: insertError } = await supabase
@@ -411,11 +393,20 @@ export default function TimeClock() {
     } catch (submitError) {
       console.error("Erro ao enviar solicitação:", submitError);
 
-      // Remove o arquivo caso o cadastro da solicitação falhe
+      // Remove o arquivo do R2 caso o cadastro falhe
       if (attachmentPath) {
-        await supabase.storage
-          .from("time-adjustment-attachments")
-          .remove([attachmentPath]);
+        const { error: cleanupError } =
+          await supabase.functions.invoke("r2-attachments", {
+            body: {
+              action: "delete",
+              requestId,
+              attachmentPath,
+            },
+          });
+
+        if (cleanupError) {
+          console.error("Erro ao remover comprovante do R2:", cleanupError);
+        }
       }
 
       setError(
