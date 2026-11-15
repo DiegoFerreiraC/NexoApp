@@ -65,32 +65,40 @@ function Dashboard() {
     );
   }
 
-
   async function loadUserRole() {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (!user) {
+      if (!user) {
+        setRoleLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (error) {
+        console.error("Erro ao carregar perfil:", error);
+        setRoleLoading(false);
+        return;
+      }
+
+      setRole(data.role);
+    } catch (error) {
+      console.error("Erro ao consultar usuário:", error);
+    } finally {
       setRoleLoading(false);
-      return;
     }
-
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    if (error) {
-      console.error("Erro ao carregar perfil:", error);
-      setRoleLoading(false);
-      return;
-    }
-
-    setRole(data.role);
-    setRoleLoading(false);
   }
+
+  useEffect(() => {
+    loadUserRole();
+  }, []);
 
   return (
     <DashboardLayout>

@@ -247,8 +247,17 @@
   letter-spacing: -0.035em;
 }
 
-.employee-profile-header > .employee-primary-button {
+.employee-profile-header>.employee-primary-button {
   margin-left: auto;
+}
+
+.employee-profile-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-left: auto;
+  flex-wrap: wrap;
 }
 
 .employee-success-message {
@@ -281,7 +290,7 @@
   background: #fff;
 }
 
-.employee-details-card > svg {
+.employee-details-card>svg {
   color: #6b4be6;
 }
 
@@ -369,7 +378,7 @@
   background: #fff;
 }
 
-.employee-form-section + .employee-form-section {
+.employee-form-section+.employee-form-section {
   margin-top: 18px;
 }
 
@@ -411,10 +420,11 @@
 }
 
 .employee-field input,
-.employee-field select {
+.employee-field select,
+.employee-field textarea {
   width: 100%;
-  height: 47px;
-  padding: 0 14px;
+  box-sizing: border-box;
+  padding: 12px 14px;
   border: 1px solid #d9d3e7;
   border-radius: 10px;
   outline: none;
@@ -424,8 +434,27 @@
   font-size: 14px;
 }
 
+.employee-field input,
+.employee-field select {
+  height: 47px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.employee-field textarea {
+  min-height: 120px;
+  line-height: 1.5;
+  resize: vertical;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.employee-field textarea::placeholder {
+  color: #9a94aa;
+}
+
 .employee-field input:focus,
-.employee-field select:focus {
+.employee-field select:focus,
+.employee-field textarea:focus {
   border-color: #6b4be6;
   box-shadow: 0 0 0 4px rgba(107, 75, 230, 0.12);
 }
@@ -522,7 +551,7 @@
   color: #15964f;
 }
 
-.employee-success-card > p:not(.employee-kicker) {
+.employee-success-card>p:not(.employee-kicker) {
   max-width: 460px;
   margin: 16px auto 0;
   color: #6d667d;
@@ -640,8 +669,8 @@
     flex-direction: column;
   }
 
-  .employee-list-header > .employee-primary-button,
-  .employee-profile-header > .employee-primary-button {
+  .employee-list-header>.employee-primary-button,
+  .employee-profile-header>.employee-primary-button {
     margin-left: 0;
   }
 
@@ -660,11 +689,23 @@
   }
 
   .employee-list-meta,
-  .employee-list-item > .employee-status {
+  .employee-list-item>.employee-status {
     display: none;
   }
 
   .employee-details-grid {
     grid-template-columns: 1fr;
+  }
+
+  .employee-profile-actions {
+    width: 100%;
+    margin-left: 0;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .employee-profile-actions button {
+    width: 100%;
+    justify-content: center;
   }
 }
