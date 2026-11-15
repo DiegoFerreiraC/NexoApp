@@ -3,10 +3,10 @@ import { useEffect, useState } from "react";
 import { supabase } from "../services/supabase";
 
 import {
-  BarChart3,
   CalendarDays,
-  FilePlus2,
+  Clock,
   UserPlus,
+  Wallet,
 } from "lucide-react";
 
 import teamIllustration from "../assets/dashboard-team.png";
@@ -23,12 +23,12 @@ const quickActions = [
     icon: CalendarDays,
   },
   {
-    label: "Lançar documento",
-    icon: FilePlus2,
+    label: "Gestão do ponto",
+    icon: Clock,
   },
   {
-    label: "Gerar relatório",
-    icon: BarChart3,
+    label: "Folha de pagamento",
+    icon: Wallet,
   },
 ];
 
@@ -37,6 +37,7 @@ function Dashboard() {
   const [notice, setNotice] = useState("");
   const [role, setRole] = useState(null);
   const [roleLoading, setRoleLoading] = useState(true);
+
 
   function handleQuickAction(label) {
     if (label === "Adicionar colaborador") {
@@ -49,13 +50,21 @@ function Dashboard() {
       return;
     }
 
+    if (label === "Gestão do ponto") {
+      navigate("/gestao-ponto");
+      return;
+    }
+
+    if (label === "Folha de pagamento") {
+      navigate("/folha");
+      return;
+    }
+
     setNotice(
       `${label}: este módulo será disponibilizado nas próximas etapas do MVP.`
     );
   }
-  useEffect(() => {
-    loadUserRole();
-  }, []);
+
 
   async function loadUserRole() {
     const {
